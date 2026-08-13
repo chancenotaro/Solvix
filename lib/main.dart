@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'widgets/lumen_bubble.dart';
+import 'theme/solvix_theme.dart';
 
 void main() {
   runApp(const SolvixApp());
@@ -13,12 +14,8 @@ class SolvixApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Solvix',
-      theme: ThemeData(
-        colorScheme: .fromSeed(
-          seedColor: Colors.deepPurple
-      ),
-    ),
-    home: const SolvixHomePage(),
+      theme: SolvixTheme.darkTheme,
+      home: const SolvixHomePage(),
     );
   }
 }
@@ -31,7 +28,7 @@ class SolvixHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Solvix'),
-      ),
+    ),
       body: Stack(
         children: [
           const Center(

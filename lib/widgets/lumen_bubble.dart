@@ -35,7 +35,7 @@ class _LumenBubbleState extends State<LumenBubble> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: Colors.deepPurple,
+                color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -45,9 +45,9 @@ class _LumenBubbleState extends State<LumenBubble> {
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.chat_bubble,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.primary,
                 size: 30,
               ),
             ),
@@ -57,8 +57,8 @@ class _LumenBubbleState extends State<LumenBubble> {
               child: Container(
                 width: 20,
                 height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.error,
                   shape: BoxShape.circle,
                 ),
               ),
