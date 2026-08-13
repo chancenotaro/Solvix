@@ -19,15 +19,55 @@ class _LumenBubbleState extends State<LumenBubble> {
       screenSize.height - 180,
     );
 
-    return Positioned(
+    return AnimatedPositioned(
+
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
       left: position!.dx,
       top: position!.dy,
       child: GestureDetector(
         onPanUpdate: (details) {
+          final screenSize = MediaQuery.sizeOf(context);
+          const bubbleSize = 64;
+          const padding = 16.0;
+
           setState(() {
-            position = position! + details.delta;
+            final newX = position!.dx + details.delta.dx;
+            final newY = position!.dy + details.delta.dy;
+
+            position = Offset(
+              newX.clamp(
+                padding,
+                screenSize.width - bubbleSize - padding,
+              ),
+              newY.clamp(
+                padding,
+                screenSize.height - bubbleSize - padding,
+              ),
+            );
           });
         },
+
+        onPanEnd: (details) {
+          final screenWidth = MediaQuery.sizeOf(context).width;
+          const bubbleSize = 64;
+
+          final currentX = position!.dx;
+
+          final leftEdge = 16.0;
+          final rightEdge = screenWidth - bubbleSize - 16.0;
+
+          final targetX =
+              currentX < screenWidth / 2
+                  ? leftEdge
+                  : rightEdge;
+          setState((){
+            position = Offset(
+              targetX,
+              position!.dy,
+            );
+          });
+          },
         child: Stack(
           clipBehavior: Clip.none,
           children: [
