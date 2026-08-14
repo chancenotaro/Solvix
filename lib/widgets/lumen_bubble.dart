@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'lumen_chat.dart';
 
 class LumenBubble extends StatefulWidget {
   const LumenBubble({super.key});
@@ -9,6 +10,8 @@ class LumenBubble extends StatefulWidget {
 
 class _LumenBubbleState extends State<LumenBubble> {
   Offset? position;
+
+  bool isOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,15 @@ class _LumenBubbleState extends State<LumenBubble> {
       curve: Curves.easeOut,
       left: position!.dx,
       top: position!.dy,
-      child: GestureDetector(
+      child: isOpen
+        ? LumenChat(
+        onClose: (){
+          setState((){
+            isOpen = false;
+          });
+        },
+      )
+          : GestureDetector(
         onPanUpdate: (details) {
           final screenSize = MediaQuery.sizeOf(context);
           const bubbleSize = 64;
@@ -45,6 +56,12 @@ class _LumenBubbleState extends State<LumenBubble> {
                 screenSize.height - bubbleSize - padding,
               ),
             );
+          });
+        },
+
+        onTap: () {
+          setState((){
+            isOpen = !isOpen;
           });
         },
 
