@@ -13,6 +13,8 @@ class _LumenBubbleState extends State<LumenBubble> {
 
   bool isOpen = false;
 
+  Offset? savedPosition;
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
@@ -61,7 +63,14 @@ class _LumenBubbleState extends State<LumenBubble> {
 
         onTap: () {
           setState((){
-            isOpen = !isOpen;
+            if(!isOpen){
+              savedPosition = position;
+
+              isOpen = true;
+            }else{
+             position = savedPosition;
+             isOpen = false;
+            }
           });
         },
 

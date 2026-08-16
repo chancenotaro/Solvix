@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'widgets/lumen_bubble.dart';
+import 'widgets/lumen/lumen_bubble.dart';
 import 'theme/solvix_theme.dart';
+import 'widgets/global_nav_drawer.dart';
 
 void main() {
   runApp(const SolvixApp());
@@ -28,6 +29,18 @@ class SolvixHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Solvix'),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed:() {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
+            },
+          ),
+        ],
     ),
       body: Stack(
         children: [
@@ -36,10 +49,12 @@ class SolvixHomePage extends StatelessWidget {
               'Welcome to Solvix',
               style: TextStyle(fontSize: 24),
             ),
+
           ),
           const LumenBubble(),
-        ],
+       ],
       ),
+      endDrawer: const GlobalDrawer(),
     );
   }
 }
