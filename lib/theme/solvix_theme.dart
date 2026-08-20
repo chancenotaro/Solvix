@@ -21,6 +21,7 @@ class SolvixTheme {
       primary: primary,
       secondary: primaryBright,
       surface: surface,
+      surfaceContainer: surfaceLight,
       error: error,
     ),
 
