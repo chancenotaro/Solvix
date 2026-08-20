@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'widgets/lumen/lumen_bubble.dart';
 import 'theme/solvix_theme.dart';
 import 'widgets/global_nav_drawer.dart';
+import 'shell/solvix_shell.dart';
 
 void main() {
   runApp(const SolvixApp());
@@ -16,7 +17,7 @@ class SolvixApp extends StatelessWidget {
     return MaterialApp(
       title: 'Solvix',
       theme: SolvixTheme.darkTheme,
-      home: const SolvixHomePage(),
+      home: const SolvixShell(),
     );
   }
 }
