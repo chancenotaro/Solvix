@@ -3,6 +3,9 @@ import '../widgets/global_nav_drawer.dart';
 import '../widgets/lumen/lumen_bubble.dart';
 import '../pages/home_page.dart';
 import '../navigation/solvix_page.dart';
+import '../pages/projects_page.dart';
+import '../pages/settings_page.dart';
+import '../pages/about_page.dart';
 
     class SolvixShell extends StatefulWidget{
       const SolvixShell({super.key});
@@ -46,11 +49,12 @@ import '../navigation/solvix_page.dart';
 
           body: Stack(
               children:[
-                currentPage == SolvixPage.home
-                ? const HomePage()
-                : const Center(
-                  child: Text('Page coming soon'),
-                ),
+                switch (currentPage){
+                SolvixPage.home => const HomePage(),
+                SolvixPage.projects => const ProjectsPage(),
+                SolvixPage.settings => const SettingsPage(),
+                SolvixPage.about => const AboutPage(),
+                },
 
                 const LumenBubble(),
               ]
