@@ -47,7 +47,10 @@ import '../pages/about_page.dart';
             },
           ),
 
-          body: Stack(
+          body: LayoutBuilder(
+            builder:  (context, constraints){
+              return  Stack(
+                fit: StackFit.expand,
               children:[
                 switch (currentPage){
                 SolvixPage.home => const HomePage(),
@@ -56,11 +59,17 @@ import '../pages/about_page.dart';
                 SolvixPage.about => const AboutPage(),
                 },
 
-                const LumenBubble(),
-              ]
+                LumenBubble(
+                availableSize: Size(
+                constraints.maxWidth,
+                    constraints.maxHeight,
 
+                  ),
+                ),
+              ],
+              );
+              },
           ),
-
         );
       }
     }
