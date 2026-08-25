@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solvix/theme/solvix_theme.dart';
-
+import 'package:solvix/projects/create_project_page.dart';
+import '../projects/project_scope.dart';
 
 
 class HomePage extends StatelessWidget {
@@ -15,30 +16,30 @@ class HomePage extends StatelessWidget {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Welcome back',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: primaryColor,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
             Text(
               'Continue Working',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: primaryColor,
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
             Card(
               child: ListTile(
@@ -52,19 +53,19 @@ class HomePage extends StatelessWidget {
               )
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             //Recent Projects Title
             Text(
               'Recent Projects',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: primaryColor,
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             //Recent Projects List
             SizedBox(
@@ -79,7 +80,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             Text(
               'Quick Actions',
@@ -92,32 +93,48 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _quickAction(
-                  context,
-                  Icons.add,
-                  'New Project',
-                ),
+            SizedBox(
+              height: 240,
+              child: ListView(
+                scrollDirection: Axis.vertical,
+                children: [
+                  _quickAction(
+                      context,
+                      Icons.add,
+                      'New Project',
+                          () {
+                        Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CreateProjectPage(
+                            projectManager: ProjectScope.of(context),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+
                 _quickAction(
                   context,
                   Icons.folder_open,
                   'Open Project',
+                    (){
+
+                    }
                 ),
                 _quickAction(
                   context,
                   Icons.file_download,
                   'Import',
+                    () {
+
+                    }
                 ),
               ],
             ),
-
-
-
-          ],
         ),
+      ],
+    ),
       ),
     );
   }
@@ -127,15 +144,14 @@ class HomePage extends StatelessWidget {
       BuildContext context,
       IconData icon,
       String label,
+      VoidCallback onTap
       ) {
     return SizedBox(
       width: 150,
       height: 80,
       child: Card(
         child: InkWell(
-          onTap: () {
-            //We'll implement this later
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +159,6 @@ class HomePage extends StatelessWidget {
               Icon(
                 icon,
                 color: Theme.of(context).colorScheme.primary,
-
               ),
               const SizedBox(height: 8),
 
@@ -161,35 +176,26 @@ class HomePage extends StatelessWidget {
     Color primaryColor = Theme.of(context).colorScheme.primary;
 
     return SizedBox(
-      width: 180,
+      width: 220,
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
+              ListTile(
+                leading: Icon(
                 Icons.code,
                 color: primaryColor,
               ),
-
-              const Spacer(),
-
-              Text(
+              title: Text(
                 name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              const Text(
-                'Updated recently',
-                style: TextStyle(
-                  fontSize: 12,
-                ),
               ),
+
             ],
           ),
         ),

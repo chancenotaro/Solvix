@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'widgets/lumen/lumen_bubble.dart';
+
 import 'theme/solvix_theme.dart';
-import 'widgets/global_nav_drawer.dart';
+
 import 'shell/solvix_shell.dart';
+import 'projects/project_manager.dart';
+import 'projects/project_scope.dart';
 
 void main() {
-  runApp(const SolvixApp());
+  runApp(
+      const SolvixApp(),
+
+  );
 }
 
 class SolvixApp extends StatelessWidget {
@@ -17,7 +22,10 @@ class SolvixApp extends StatelessWidget {
     return MaterialApp(
       title: 'Solvix',
       theme: SolvixTheme.darkTheme,
-      home: const SolvixShell(),
+      home: ProjectScope(
+        projectManager: ProjectManager(),
+        child: const SolvixShell(),
+      )
     );
   }
 }
