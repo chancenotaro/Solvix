@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:solvix/theme/solvix_theme.dart';
 import 'package:solvix/projects/create_project_page.dart';
 import '../projects/project_scope.dart';
 
@@ -12,9 +11,14 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    Color primaryColor = Theme.of(context).colorScheme.primary;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
-    return SingleChildScrollView(
+    final projectManager = ProjectScope.of(context);
+
+    return ListenableBuilder(
+        listenable: projectManager,
+        builder: (context, child) {
+          return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -72,11 +76,20 @@ class HomePage extends StatelessWidget {
               height: 140,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: [
-                  _projectCard(context, 'Project One'),
-                  _projectCard(context, 'Project Two'),
-                  _projectCard(context, 'Project Three'),
-                ],
+                children: projectManager.projects.isEmpty
+                ? [
+                  const Center(
+                    child: Text('No recent projects'),
+                  ),
+                  ]
+                  : projectManager.projects
+                  .map(
+                    (project) => _projectCard(
+                      context,
+                      project.name,
+                    ),
+                )
+                  .toList(),
               ),
             ),
 
@@ -136,6 +149,8 @@ class HomePage extends StatelessWidget {
       ],
     ),
       ),
+        );
+            },
     );
   }
 

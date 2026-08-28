@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'project_scope.dart';
 import 'solvix_project.dart';
 import 'project_manager.dart';
 
