@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../projects/project_scope.dart';
 import '../utils/date_formatter.dart';
+import 'package:solvix/projects/project_workspace.dart';
 
 class ProjectsPage extends StatelessWidget {
   const ProjectsPage({super.key});
@@ -56,6 +57,15 @@ class ProjectsPage extends StatelessWidget {
                         trailing: const Icon(
                           Icons.arrow_forward,
                         ),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ProjectWorkspace(
+                                project: project,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },

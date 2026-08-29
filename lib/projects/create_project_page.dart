@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:solvix/projects/project_file.dart';
+import 'package:solvix/projects/project_folder.dart';
 import 'solvix_project.dart';
 import 'project_manager.dart';
 
@@ -66,6 +68,59 @@ class CreateProjectPage extends StatefulWidget {
                   name: name,
                   path: '',
                   lastModified: DateTime.now(),
+                  rootFolder: ProjectFolder(
+                      name: name,
+                      path: '',
+                    folders: [
+                      ProjectFolder(
+                          name: 'lib',
+                          path: 'lib',
+                      files: [
+                      ProjectFile(
+                          name: 'utils.dart',
+                          path: 'lib/utils.dart',
+                        content: '''
+String greet(String name) {
+return 'Hello, \$name!';
+}
+'''
+                      ),
+                        ProjectFile(
+                          name: 'main.dart',
+                          path: 'lib/main.dart',
+                          content: '''
+void main() {
+  print('Hello, Solvix!');
+}
+''',
+                        ),
+                    ],
+                  ),
+                ProjectFolder(
+                name: 'widgets',
+                path: 'widgets',
+                files:  [
+                  ProjectFile(
+                    name: 'button.dart',
+                    path: 'widgets/button.dart',
+                    content: '''
+                    class MyButton {
+                    void press() {
+                    print('Button pressed');
+                    }
+                    }
+                    ''',
+                  ),
+                ],
+                ),
+                ],
+                files: [
+                  ProjectFile(
+                    name: 'pubspec.yaml',
+                    path: 'pubspec.yaml',
+                  )
+                ]
+                  )
                 );
 
 
