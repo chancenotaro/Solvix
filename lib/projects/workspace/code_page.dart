@@ -19,6 +19,16 @@ class _CodePageState extends State<CodePage> {
 
   bool isDrawerOpen = true;
 
+  final TextEditingController codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    codeController.dispose();
+    super.dispose();
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -53,22 +63,54 @@ class _CodePageState extends State<CodePage> {
                   padding: const EdgeInsets.all(12),
                   child: Align(
                     alignment: Alignment.topLeft,
-                    child: SingleChildScrollView(
-                      child: Text(
-                        activeFile!.content,
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 14,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          padding: const EdgeInsets.only(top:12),
+                          child: Text(
+                            List.generate(
+                              '\n'.allMatches(codeController.text).length + 1,
+                                  (index) => '${index + 1}',
+                            ).join('\n'),
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
-                      ),
+
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: codeController,
+                            maxLines: null,
+                            expands: true,
+                            textAlignVertical: TextAlignVertical.top,
+                            style: const TextStyle (
+                              fontFamily: 'monospace',
+                              fontSize: 14,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                activeFile!.content = value;
+                              });
+                              },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ]
           ),
         ),
-
         // Project explorer
         if (isDrawerOpen)
           Positioned(
@@ -87,6 +129,7 @@ class _CodePageState extends State<CodePage> {
                     onFileSelected: (file) {
                       setState(() {
                         activeFile = file;
+                        codeController.text = file.content;
                       });
                     },
                     onToggle: () {
