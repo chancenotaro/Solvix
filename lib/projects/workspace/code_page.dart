@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solvix/projects/solvix_project.dart';
 import 'package:solvix/projects/workspace/project_drawer.dart';
 import '../project_file.dart';
+import 'package:re_editor/re_editor.dart';
 
 class CodePage extends StatefulWidget {
   final SolvixProject project;
@@ -19,7 +20,7 @@ class _CodePageState extends State<CodePage> {
 
   bool isDrawerOpen = true;
 
-  final TextEditingController codeController = TextEditingController();
+  final CodeLineEditingController codeController = CodeLineEditingController();
 
   @override
   void dispose() {
@@ -63,47 +64,27 @@ class _CodePageState extends State<CodePage> {
                   padding: const EdgeInsets.all(12),
                   child: Align(
                     alignment: Alignment.topLeft,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 40,
-                          padding: const EdgeInsets.only(top:12),
-                          child: Text(
-                            List.generate(
-                              '\n'.allMatches(codeController.text).length + 1,
-                                  (index) => '${index + 1}',
-                            ).join('\n'),
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
 
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: codeController,
-                            maxLines: null,
-                            expands: true,
-                            textAlignVertical: TextAlignVertical.top,
-                            style: const TextStyle (
-                              fontFamily: 'monospace',
-                              fontSize: 14,
-                            ),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                            ),
-                            onChanged: (value) {
-                              setState(() {
-                                activeFile!.content = value;
-                              });
-                              },
-                          ),
-                        ),
-                      ],
+                   child: CodeEditor(
+                      controller: codeController,
+                      wordWrap: false,
+
+                      indicatorBuilder: (
+                          context,
+                      editingController,
+                      chunkController,
+                      notifier,
+                          ) {
+                        return DefaultCodeLineNumber(
+                          notifier: notifier,
+                          controller: editingController,
+                        );
+                        },
+                       padding: const EdgeInsets.all(12),
+                       onChanged: (value) {
+                        activeFile?.content =
+                            value.codeLines.asString(TextLineBreak.lf);
+                      }
                     ),
                   ),
                 ),
