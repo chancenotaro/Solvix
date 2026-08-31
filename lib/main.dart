@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'theme/solvix_theme.dart';
-
 import 'shell/solvix_shell.dart';
 import 'projects/project_manager.dart';
 import 'projects/project_scope.dart';

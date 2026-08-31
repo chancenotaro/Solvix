@@ -6,12 +6,14 @@ class ProjectDrawer extends StatelessWidget {
   final ProjectFolder rootFolder;
   final void Function(ProjectFile file)? onFileSelected;
   final VoidCallback onToggle;
+  final VoidCallback onNewFile;
 
   const ProjectDrawer({
     super.key,
     required this.rootFolder,
     this.onFileSelected,
     required this.onToggle,
+    required this.onNewFile,
   });
 
   @override
@@ -43,8 +45,19 @@ class ProjectDrawer extends StatelessWidget {
 
         ..._buildFolders(rootFolder.folders),
         ..._buildFiles(rootFolder.files),
+
+        ListTile(
+          leading: const Icon(Icons.add),
+            title: const Text('New File'),
+          onTap: () {
+            //onNewFile
+            debugPrint('New File Tapped');
+            onNewFile();
+          },
+        )
       ],
     );
+
   }
 
   List<Widget> _buildFolders(List<ProjectFolder> folders) {

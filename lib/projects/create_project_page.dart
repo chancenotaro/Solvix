@@ -118,33 +118,20 @@ void main() {
                   ProjectFile(
                     name: 'pubspec.yaml',
                     path: 'pubspec.yaml',
+                    content: ''
                   )
                 ]
                   )
                 );
-
-
-
                 widget.projectManager.addProject(project);
-
                 Navigator.of(context).pop();
-
               },
               child: const Text('Create Project'),
               ),
-
-
             ),
           ],
-
-
         ),
-
-
       ),
-
-
     );
   }
-
 }

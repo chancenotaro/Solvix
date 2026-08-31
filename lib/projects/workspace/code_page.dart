@@ -17,7 +17,6 @@ class CodePage extends StatefulWidget {
 }
 class _CodePageState extends State<CodePage> {
   ProjectFile? activeFile;
-
   bool isDrawerOpen = true;
 
   final CodeLineEditingController codeController = CodeLineEditingController();
@@ -29,6 +28,61 @@ class _CodePageState extends State<CodePage> {
   }
 
 
+
+  void _createNewFile() {
+    final controller = TextEditingController();
+
+    showDialog(context: context, builder: (dialogContext) {
+      return AlertDialog(
+        title:const Text('New File'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'File name',
+            hintText: 'example.dart',
+          ),
+          onSubmitted: (value) {
+            final file = ProjectFile(
+              name: value,
+              path: value,
+              content: '',
+            );
+
+            debugPrint('Created: ${file.name}');
+
+            Navigator.of(dialogContext).pop();
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed:() {
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final file = ProjectFile(
+                name: controller.text,
+                path: controller.text,
+                content: '',
+              );
+
+              Navigator.of(dialogContext).pop();
+
+              setState(() {
+                widget.project.rootFolder.files.add(file);
+              });
+
+            },
+            child: const Text('Create'),
+          )
+        ],
+      );
+    },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +172,7 @@ class _CodePageState extends State<CodePage> {
                         isDrawerOpen = false;
                       });
                     },
+                    onNewFile: _createNewFile,
                   ),
                 ),
               ),
