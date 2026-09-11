@@ -3,6 +3,8 @@ import 'package:solvix/projects/project_file.dart';
 import 'package:solvix/projects/project_folder.dart';
 import 'solvix_project.dart';
 import 'project_manager.dart';
+import 'local_project_storage.dart';
+import 'project_workspace.dart';
 
 class CreateProjectPage extends StatefulWidget {
   final ProjectManager projectManager;
@@ -58,73 +60,40 @@ class CreateProjectPage extends StatefulWidget {
 
             SizedBox(
               width: double.infinity,
-              child: FilledButton(onPressed: (){
+              child: FilledButton(onPressed: () async {
                 final name = _nameController.text.trim();
 
                 if(name.isEmpty){
                   return;
                 }
-                final project = SolvixProject(
-                  name: name,
-                  path: '',
-                  lastModified: DateTime.now(),
-                  rootFolder: ProjectFolder(
-                      name: name,
-                      path: '',
-                    folders: [
-                      ProjectFolder(
-                          name: 'lib',
-                          path: 'lib',
-                      files: [
-                      ProjectFile(
-                          name: 'utils.dart',
-                          path: 'lib/utils.dart',
-                        content: '''
-String greet(String name) {
-return 'Hello, \$name!';
-}
-'''
-                      ),
-                        ProjectFile(
-                          name: 'main.dart',
-                          path: 'lib/main.dart',
-                          content: '''
-void main() {
-  print('Hello, Solvix!');
-}
-''',
-                        ),
-                    ],
+
+                try {
+                  final storage = LocalProjectStorage();
+
+                  final project = await storage.createProject(name);
+
+                  debugPrint('REAL PROJECT CREATED: ${project.name}');
+                  debugPrint('REAL PROJECT PATH: ${project.path}');
+
+                  widget.projectManager.addProject(project);
+
+                  if (!mounted) return;
+
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => ProjectWorkspace(
+                        project: project
+                    ),
                   ),
-                ProjectFolder(
-                name: 'widgets',
-                path: 'widgets',
-                files:  [
-                  ProjectFile(
-                    name: 'button.dart',
-                    path: 'widgets/button.dart',
-                    content: '''
-                    class MyButton {
-                    void press() {
-                    print('Button pressed');
-                    }
-                    }
-                    ''',
-                  ),
-                ],
-                ),
-                ],
-                files: [
-                  ProjectFile(
-                    name: 'pubspec.yaml',
-                    path: 'pubspec.yaml',
-                    content: ''
-                  )
-                ]
-                  )
                 );
-                widget.projectManager.addProject(project);
-                Navigator.of(context).pop();
+              } catch(e) {
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.toString()),
+                  ),
+                );
+                }
               },
               child: const Text('Create Project'),
               ),

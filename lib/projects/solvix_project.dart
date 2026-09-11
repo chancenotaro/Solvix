@@ -7,7 +7,7 @@ class SolvixProject{
 
   final ProjectFolder rootFolder;
 
-  const SolvixProject({
+  SolvixProject({
     required this.name,
     required this.path,
     required this.lastModified,

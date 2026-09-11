@@ -17,7 +17,7 @@ class CodePage extends StatefulWidget {
 }
 class _CodePageState extends State<CodePage> {
   ProjectFile? activeFile;
-  bool isDrawerOpen = true;
+  bool isDrawerOpen = false;
 
   final CodeLineEditingController codeController = CodeLineEditingController();
 

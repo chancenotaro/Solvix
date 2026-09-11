@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solvix/projects/create_project_page.dart';
+import 'package:solvix/projects/local_project_storage.dart';
+import 'package:solvix/projects/project_picker.dart';
 import '../projects/project_scope.dart';
 
 
@@ -131,8 +133,12 @@ class HomePage extends StatelessWidget {
                   context,
                   Icons.folder_open,
                   'Open Project',
-                    (){
-
+                    ()  async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ProjectPicker(),
+                        ),
+                      );
                     }
                 ),
                 _quickAction(
