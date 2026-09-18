@@ -2,6 +2,30 @@ import 'package:flutter/material.dart';
 import 'local_project_storage.dart';
 import 'project_workspace.dart';
 
+String _formatLastModified(DateTime date) {
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  if (difference.inMinutes < 1) {
+    return 'Modified just now';
+  }
+
+  if (difference.inHours < 1) {
+    return 'Modified ${difference.inMinutes}m ago';
+  }
+
+  if (difference.inDays < 1) {
+    return 'Modified ${difference.inHours}h ago';
+  }
+
+  if (difference.inDays < 7) {
+    return 'Modified ${difference.inDays}d ago';
+  }
+
+  return 'Modified ${date.month}/${date.day}/${date.year}';
+}
+
+
 class ProjectPicker extends StatelessWidget {
   const ProjectPicker({super.key});
 
@@ -69,21 +93,41 @@ class ProjectPicker extends StatelessWidget {
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: projects.length,
             itemBuilder: (context, index) {
               final project = projects[index];
 
-              return ListTile(
-                leading: const Icon(Icons.folder),
-                title: Text(project.name),
-                subtitle: Text(project.path),
-                trailing: const Icon(Icons.arrow_forward),
-                onTap: () {
-                  _openProject(
-                    context,
-                    project.path,
-                  );
-                },
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: const Icon(
+                    Icons.folder,
+                    size: 32,
+                  ),
+                  title: Text(
+                    project.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _formatLastModified(project.lastModified),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                  ),
+                  onTap: () {
+                    _openProject(
+                      context,
+                      project.path,
+                    );
+                  },
+                ),
               );
             },
           );

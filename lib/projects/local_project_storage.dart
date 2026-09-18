@@ -18,10 +18,12 @@ class LocalProjectStorage implements ProjectStorage {
         projects.add(project);
       }
     }
+
+    projects.sort(
+        (a,b) => b.lastModified.compareTo(a.lastModified)
+    );
     return projects;
   }
-
-
 
   Future<Directory> getProjectsDirectory() async {
     final appDirectory = await getApplicationDocumentsDirectory();
@@ -67,6 +69,27 @@ class LocalProjectStorage implements ProjectStorage {
     return loadProject(projectDirectory.path);
   }
 
+  Future<ProjectFile> createFile(
+      String folderPath,
+      String fileName,
+      ) async {
+    final filePath = '$folderPath/$fileName';
+
+    final file = File(filePath);
+
+    if (await file.exists()) {
+      throw Exception ( 'A file named "$fileName" already exists.');
+    }
+    await file.writeAsString('');
+
+    return ProjectFile(
+      name: fileName,
+      path: filePath,
+      content: '',
+      isTextFile: true,
+    );
+}
+
   @override
   Future<SolvixProject> loadProject(String path) async {
     final directory = Directory(path);
@@ -102,11 +125,14 @@ class LocalProjectStorage implements ProjectStorage {
         final childFolder = await _loadFolder(entity);
         folder.folders.add(childFolder);
       } else if (entity is File) {
+
+        final content = await entity.readAsString();
+
         folder.files.add(
           ProjectFile(
             name: entity.uri.pathSegments.last,
             path: entity.path,
-            content: '',
+            content: content,
             isTextFile: true,
           ),
         );
@@ -118,5 +144,15 @@ class LocalProjectStorage implements ProjectStorage {
   @override
   Future<void> saveProject(SolvixProject project) async {
     throw UnimplementedError();
+  }
+
+  Future<void> saveFile(ProjectFile file) async {
+    if (!file.isTextFile) {
+      throw Exception('Cannot save binary file as text.');
+    }
+
+    final diskFile = File(file.path);
+
+    await diskFile.writeAsString(file.content);
   }
 }

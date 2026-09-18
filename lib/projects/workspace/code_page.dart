@@ -3,11 +3,15 @@ import 'package:solvix/projects/solvix_project.dart';
 import 'package:solvix/projects/workspace/project_drawer.dart';
 import '../project_file.dart';
 import 'package:re_editor/re_editor.dart';
+import 'package:solvix/projects/local_project_storage.dart';
+import 'package:solvix/projects/project_folder.dart';
 
 class CodePage extends StatefulWidget {
+
+
   final SolvixProject project;
 
-  const CodePage({
+   const CodePage({
     super.key,
     required this.project,
   });
@@ -17,7 +21,18 @@ class CodePage extends StatefulWidget {
 }
 class _CodePageState extends State<CodePage> {
   ProjectFile? activeFile;
+  ProjectFolder? selectedFolder;
+  bool isLoadingFile = false;
   bool isDrawerOpen = false;
+  List<ProjectFolder> _getAllFolders(ProjectFolder folder) {
+    final folders = <ProjectFolder>[];
+
+    for (final childFolder in folder.folders) {
+      folders.add(childFolder);
+      folders.addAll(_getAllFolders(childFolder));
+    }
+    return folders;
+  }
 
   final CodeLineEditingController codeController = CodeLineEditingController();
 
@@ -31,28 +46,58 @@ class _CodePageState extends State<CodePage> {
 
   void _createNewFile() {
     final controller = TextEditingController();
+    ProjectFolder? targetFolder = selectedFolder ?? widget.project.rootFolder;
+    final folders = [
+      widget.project.rootFolder,
+      ..._getAllFolders(widget.project.rootFolder),
+    ];
 
     showDialog(context: context, builder: (dialogContext) {
       return AlertDialog(
         title:const Text('New File'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'File name',
-            hintText: 'example.dart',
-          ),
-          onSubmitted: (value) {
-            final file = ProjectFile(
-              name: value,
-              path: value,
-              content: '',
-            );
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'File name',
+                  hintText: 'example.dart',
+                ),
+            ),
+            const SizedBox(height: 16),
 
-            debugPrint('Created: ${file.name}');
+            DropdownButtonFormField<ProjectFolder>(
+              initialValue: targetFolder,
+                decoration: const InputDecoration(
+                  labelText: 'Folder',
+                  border: OutlineInputBorder(),
+                ),
+                items: folders.map(
+                    (folder) {
+                      return DropdownMenuItem<ProjectFolder>(
+                        value: folder,
+                          child: Text(
+                            folder == widget.project.rootFolder
+                                ? 'Project Root'
+                                : folder.name,
+                          ),
+                      );
+                    }
+                ).toList(),
+                onChanged: (folder) {
+                if(folder == null) return;
 
-            Navigator.of(dialogContext).pop();
-          },
+                  targetFolder = folder;
+
+                  debugPrint(
+                    'New File Target Folder: '
+                        '${folder?.path ?? widget.project.path}',
+                  );
+                },
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -62,22 +107,54 @@ class _CodePageState extends State<CodePage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              final file = ProjectFile(
-                name: controller.text,
-                path: controller.text,
-                content: '',
-              );
+          onPressed: () async {
+      final fileName = controller.text.trim();
 
-              Navigator.of(dialogContext).pop();
+      if (fileName.isEmpty) {
+      return;
+      }
 
-              setState(() {
-                widget.project.rootFolder.files.add(file);
-              });
+      try {
+      final storage = LocalProjectStorage();
 
-            },
-            child: const Text('Create'),
-          )
+      final folderPath =
+          targetFolder?.path;
+
+      debugPrint('Creating File in: ${targetFolder?.path}');
+
+      final file = await storage.createFile(
+        folderPath!,
+        fileName
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(dialogContext).pop();
+
+      setState(() {
+      if (selectedFolder != null) {
+        targetFolder?.files.add(file);
+      }
+      });
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+      content: Text('Created ${file.name}'),
+      ),
+      );
+      } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+      content: Text('Could not create file: $e'),
+      ),
+      );
+      }
+      },
+      child: const Text('Create'),
+      )
         ],
       );
     },
@@ -101,11 +178,48 @@ class _CodePageState extends State<CodePage> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                 ),
-                child: Text(
-                  activeFile?.name ?? 'No file selected',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        activeFile?.name ?? 'No file selected',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.save),
+                      tooltip: 'Save',
+                      onPressed: activeFile == null
+                          ? null
+                          : () async {
+                        try {
+                          final storage = LocalProjectStorage();
+
+                          activeFile!.content = codeController.text;
+
+                          await storage.saveFile(activeFile!);
+
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('File saved'),
+                            ),
+                          );
+                        } catch (e) {
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Save failed: $e'),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
 
@@ -120,7 +234,9 @@ class _CodePageState extends State<CodePage> {
                     alignment: Alignment.topLeft,
 
                    child: CodeEditor(
-                      controller: codeController,
+                     controller: codeController,
+
+
                       wordWrap: false,
 
                       indicatorBuilder: (
@@ -135,10 +251,21 @@ class _CodePageState extends State<CodePage> {
                         );
                         },
                        padding: const EdgeInsets.all(12),
+
+
+
+
                        onChanged: (value) {
+
+                        if (isLoadingFile) return;
+
+                        debugPrint('EDITOR CHANGED: "${value.codeLines.asString(TextLineBreak.lf)}"',
+                        );
+
                         activeFile?.content =
                             value.codeLines.asString(TextLineBreak.lf);
                       }
+
                     ),
                   ),
                 ),
@@ -161,11 +288,25 @@ class _CodePageState extends State<CodePage> {
                   width: 200,
                   child: ProjectDrawer(
                     rootFolder: widget.project.rootFolder,
-                    onFileSelected: (file) {
+
+                    onFolderSelected: (folder) {
                       setState(() {
-                        activeFile = file;
-                        codeController.text = file.content;
+                        selectedFolder = folder;
                       });
+
+                      debugPrint('SELECTED FOLDER: ${folder.path}');
+                    },
+
+                    onFileSelected: (file) {
+
+                      isLoadingFile = true;
+
+                      codeController.text = file.content;
+                      activeFile = file;
+
+                      isLoadingFile = false;
+
+                      setState(() {});
                     },
                     onToggle: () {
                       setState(() {

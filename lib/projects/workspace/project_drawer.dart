@@ -5,6 +5,7 @@ import 'package:solvix/projects/project_file.dart';
 class ProjectDrawer extends StatelessWidget {
   final ProjectFolder rootFolder;
   final void Function(ProjectFile file)? onFileSelected;
+  final void Function(ProjectFolder foler)? onFolderSelected;
   final VoidCallback onToggle;
   final VoidCallback onNewFile;
 
@@ -12,6 +13,7 @@ class ProjectDrawer extends StatelessWidget {
     super.key,
     required this.rootFolder,
     this.onFileSelected,
+    this.onFolderSelected,
     required this.onToggle,
     required this.onNewFile,
   });
@@ -65,6 +67,11 @@ class ProjectDrawer extends StatelessWidget {
       return ExpansionTile(
         leading: const Icon(Icons.folder),
         title: Text(folder.name),
+        onExpansionChanged: (expanded) {
+          if (expanded) {
+            onFolderSelected?.call(folder);
+          }
+        },
         children: [
           ..._buildFolders(folder.folders),
           ..._buildFiles(folder.files),
