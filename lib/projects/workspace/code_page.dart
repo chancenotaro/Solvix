@@ -43,6 +43,170 @@ class _CodePageState extends State<CodePage> {
   }
 
 
+  void _showCreateDialog(){
+
+    debugPrint('SHOW CREATE DIALOG START');
+
+    ProjectFolder targetFolder =
+        selectedFolder ?? widget.project.rootFolder;
+    
+    final folders = [
+      widget.project.rootFolder,
+      ..._getAllFolders(widget.project.rootFolder),
+    ];
+    
+    final nameController = TextEditingController();
+    
+    String selectedType = 'Dart File';
+
+    debugPrint('ABOUT TO SHOW CREATE DIALOG');
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Create'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        hintText: 'MyFile',
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedType,
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Dart File',
+                          child: Text('Dart File'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Folder',
+                          child: Text('Folder'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+
+                        setDialogState(() {
+                          selectedType = value;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    DropdownButtonFormField<ProjectFolder>(
+                      initialValue: targetFolder,
+                      decoration: const InputDecoration(
+                        labelText: 'Location',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: folders.map(
+                            (folder) {
+                          return DropdownMenuItem<ProjectFolder>(
+                            value: folder,
+                            child: Text(
+                              folder == widget.project.rootFolder
+                                  ? 'Project Root'
+                                  : folder.name,
+                            ),
+                          );
+                        },
+                      ).toList(),
+                      onChanged: (folder) {
+                        if (folder == null) return;
+
+                        setDialogState(() {
+                          targetFolder = folder;
+                        });
+
+                        debugPrint(
+                          'CREATE TARGET FOLDER: ${folder.path}',
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+
+                FilledButton(
+                  onPressed: () async {
+                    final name = nameController.text.trim();
+
+                    if (name.isEmpty) {
+                      return;
+                    }
+
+                    try {
+                      final storage = LocalProjectStorage();
+
+                      if (selectedType == 'Dart File') {
+                        final file = await storage.createFile(
+                          targetFolder.path,
+                          name.endsWith('.dart') ? name : '$name.dart',
+                        );
+
+                        setState(() {
+                          targetFolder.files.add(file);
+                        });
+
+                        if (!context.mounted) return;
+
+                        Navigator.of(context).pop();
+                      } else if (selectedType == 'Folder') {
+                        final folder = await storage.createFolder(
+                          targetFolder.path,
+                          name);
+
+                        setState((){
+                          targetFolder.folders.add(folder);
+                        });
+                        if (!context.mounted) return;
+
+                        Navigator.of(context).pop();
+                      }
+                    } catch (e) {
+                      if (!context.mounted) return;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Create'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+
+  }
 
   void _createNewFile() {
     final controller = TextEditingController();
@@ -274,8 +438,21 @@ class _CodePageState extends State<CodePage> {
           ),
         ),
         // Project explorer
-        if (isDrawerOpen)
-          Positioned(
+        if (isDrawerOpen) ...[
+          Positioned.fill(
+            child: GestureDetector(
+    onTap: () {
+      setState((){
+        isDrawerOpen = false;
+    });
+    },
+    child: Container(
+    color: Colors.transparent,
+    ),
+    ),
+    ),
+
+            Positioned(
             left: 0,
             top: 0,
             bottom: 0,
@@ -306,19 +483,22 @@ class _CodePageState extends State<CodePage> {
 
                       isLoadingFile = false;
 
-                      setState(() {});
+                      setState(() {
+                        isDrawerOpen = false;
+                      });
                     },
                     onToggle: () {
                       setState(() {
                         isDrawerOpen = false;
                       });
                     },
-                    onNewFile: _createNewFile,
+                    onCreate: _showCreateDialog,
                   ),
                 ),
               ),
             ),
           ),
+        ],
 
         // Open explorer button
         if (!isDrawerOpen)

@@ -7,7 +7,7 @@ class ProjectDrawer extends StatelessWidget {
   final void Function(ProjectFile file)? onFileSelected;
   final void Function(ProjectFolder foler)? onFolderSelected;
   final VoidCallback onToggle;
-  final VoidCallback onNewFile;
+  final VoidCallback onCreate;
 
   const ProjectDrawer({
     super.key,
@@ -15,51 +15,60 @@ class ProjectDrawer extends StatelessWidget {
     this.onFileSelected,
     this.onFolderSelected,
     required this.onToggle,
-    required this.onNewFile,
+    required this.onCreate,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
+    return Column(
       children: [
         Row(
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 8, 8),
-                child: Text(
-                  'PROJECT',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsetsGeometry.fromLTRB(16, 20, 8, 8),
+                  child: Text('PROJECT',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
             ),
-
             IconButton(
-              icon: const Icon(Icons.chevron_left),
-              onPressed: onToggle,
-              tooltip: 'Hide project explorer',
+                icon: const Icon(Icons.chevron_left),
+                onPressed: onToggle,
+                tooltip: 'Hide project explorer',
             ),
           ],
         ),
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              ..._buildFolders(rootFolder.folders),
+              ..._buildFiles(rootFolder.files),
+            ],
+          ),
+        ),
 
-        ..._buildFolders(rootFolder.folders),
-        ..._buildFiles(rootFolder.files),
+        const Divider(height: 1),
 
-        ListTile(
-          leading: const Icon(Icons.add),
-            title: const Text('New File'),
-          onTap: () {
-            //onNewFile
-            debugPrint('New File Tapped');
-            onNewFile();
-          },
-        )
+        SizedBox(
+          height: 48,
+          child: Align(
+            alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Create',
+                onPressed: () {
+                    debugPrint('Create Tapped');
+                    onCreate();
+                },
+              ),
+          ),
+        ),
       ],
     );
-
   }
 
   List<Widget> _buildFolders(List<ProjectFolder> folders) {

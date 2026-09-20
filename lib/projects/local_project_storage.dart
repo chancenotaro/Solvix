@@ -69,6 +69,29 @@ class LocalProjectStorage implements ProjectStorage {
     return loadProject(projectDirectory.path);
   }
 
+  Future<ProjectFolder> createFolder(
+      String parentFolderPath,
+      String folderName,
+      ) async {
+    final folderPath = '$parentFolderPath/$folderName';
+
+    final directory = Directory(folderPath);
+
+    if(await directory.exists()) {
+      throw Exception(
+        'A folder named "$folderName" already exists.',
+      );
+    }
+
+    await directory.create();
+
+    return ProjectFolder(
+      name: folderName,
+      path: folderPath,
+    );
+  }
+
+
   Future<ProjectFile> createFile(
       String folderPath,
       String fileName,
