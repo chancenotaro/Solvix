@@ -113,6 +113,42 @@ class LocalProjectStorage implements ProjectStorage {
     );
 }
 
+  Future<ProjectFile> renameFile(
+      ProjectFile file,
+      String newName,
+      ) async {
+    final trimmedName = newName.trim();
+
+    if (trimmedName.isEmpty) {
+      throw Exception('File name cannot be empty.');
+    }
+
+    final oldFile = File(file.path);
+
+    if (!await oldFile.exists()) {
+      throw Exception('The file no longer exists.');
+    }
+
+    final newPath = '${oldFile.parent.path}/$trimmedName';
+
+    final newFile = File(newPath);
+
+    if (await newFile.exists()) {
+      throw Exception(
+        'A file named "$trimmedName" already exists.',
+      );
+    }
+
+    final renamedFile = await oldFile.rename(newPath);
+
+    return ProjectFile(
+      name: trimmedName,
+      path: renamedFile.path,
+      content: file.content,
+      isTextFile: file.isTextFile,
+    );
+  }
+
   @override
   Future<SolvixProject> loadProject(String path) async {
     final directory = Directory(path);

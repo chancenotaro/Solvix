@@ -5,7 +5,10 @@ import 'package:solvix/projects/project_file.dart';
 class ProjectDrawer extends StatelessWidget {
   final ProjectFolder rootFolder;
   final void Function(ProjectFile file)? onFileSelected;
+  final void Function(ProjectFile file)? onFileLongPressed;
   final void Function(ProjectFolder foler)? onFolderSelected;
+  final void Function(ProjectFile file)? onFolderLongPressed;
+
   final VoidCallback onToggle;
   final VoidCallback onCreate;
 
@@ -13,7 +16,9 @@ class ProjectDrawer extends StatelessWidget {
     super.key,
     required this.rootFolder,
     this.onFileSelected,
+    this.onFileLongPressed,
     this.onFolderSelected,
+    this.onFolderLongPressed,
     required this.onToggle,
     required this.onCreate,
   });
@@ -96,6 +101,9 @@ class ProjectDrawer extends StatelessWidget {
         title: Text(file.name),
         onTap: () {
           onFileSelected?.call(file);
+        },
+        onLongPress: () {
+          onFileLongPressed?.call(file);
         },
       );
     }).toList();

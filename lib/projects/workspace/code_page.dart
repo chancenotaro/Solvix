@@ -492,6 +492,35 @@ class _CodePageState extends State<CodePage> {
                         isDrawerOpen = false;
                       });
                     },
+
+                      onFileLongPressed: (file) async {
+                        final action = await showMenu<String>(
+                          context: context,
+                          position: const RelativeRect.fromLTRB(
+                            100,
+                            200,
+                            100,
+                            200,
+                          ),
+                          items: const [
+                            PopupMenuItem<String>(
+                              value: 'rename',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit),
+                                  SizedBox(width: 12),
+                                  Text('Rename'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+
+                        if (action == 'rename') {
+                          debugPrint('RENAME FILE: ${file.name}');
+                        }
+                      },
+
                     onCreate: _showCreateDialog,
                   ),
                 ),
