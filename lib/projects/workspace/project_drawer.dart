@@ -5,7 +5,7 @@ import 'package:solvix/projects/project_file.dart';
 class ProjectDrawer extends StatelessWidget {
   final ProjectFolder rootFolder;
   final void Function(ProjectFile file)? onFileSelected;
-  final void Function(ProjectFile file)? onFileLongPressed;
+  final void Function(ProjectFile file, Offset position)? onFileLongPressed;
   final void Function(ProjectFolder foler)? onFolderSelected;
   final void Function(ProjectFile file)? onFolderLongPressed;
 
@@ -96,15 +96,21 @@ class ProjectDrawer extends StatelessWidget {
 
   List<Widget> _buildFiles(List<ProjectFile> files) {
     return files.map((file) {
-      return ListTile(
+      return GestureDetector(
+        onLongPressStart: (details) {
+          onFileLongPressed?.call(
+            file,
+            details.globalPosition,
+          );
+        },
+       child: ListTile(
         leading: const Icon(Icons.insert_drive_file),
         title: Text(file.name),
+
         onTap: () {
           onFileSelected?.call(file);
         },
-        onLongPress: () {
-          onFileLongPressed?.call(file);
-        },
+       ),
       );
     }).toList();
   }

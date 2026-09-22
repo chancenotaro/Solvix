@@ -24,6 +24,32 @@ class _CodePageState extends State<CodePage> {
   ProjectFolder? selectedFolder;
   bool isLoadingFile = false;
   bool isDrawerOpen = false;
+
+
+  ProjectFolder? _findParentFolder(
+      ProjectFolder folder,
+      ProjectFile file,
+      ) {
+    if (folder.files.contains(file)) {
+      return folder;
+    }
+
+    for (final childFolder in folder.folders) {
+      final result = _findParentFolder(
+        childFolder,
+        file,
+      );
+
+      if(result != null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+
+
+
   List<ProjectFolder> _getAllFolders(ProjectFolder folder) {
     final folders = <ProjectFolder>[];
 
@@ -493,14 +519,14 @@ class _CodePageState extends State<CodePage> {
                       });
                     },
 
-                      onFileLongPressed: (file) async {
+                      onFileLongPressed: (file, position) async {
                         final action = await showMenu<String>(
                           context: context,
-                          position: const RelativeRect.fromLTRB(
-                            100,
-                            200,
-                            100,
-                            200,
+                          position: RelativeRect.fromLTRB(
+                            position.dx,
+                            position.dy,
+                            MediaQuery.of(context).size.width - position.dx,
+                            MediaQuery.of(context).size.height - position.dy,
                           ),
                           items: const [
                             PopupMenuItem<String>(
@@ -517,7 +543,91 @@ class _CodePageState extends State<CodePage> {
                         );
 
                         if (action == 'rename') {
-                          debugPrint('RENAME FILE: ${file.name}');
+                          final newName = await showDialog<String>(
+                            context: context,
+                            builder: (dialogContext) {
+                              final controller = TextEditingController(
+                                text: file.name,
+                              );
+
+                              return AlertDialog(
+                                title: const Text('Rename File'),
+                                content: TextField(
+                                  controller: controller,
+                                  autofocus: true,
+                                    decoration: const InputDecoration(
+                                      labelText: 'File name',
+                                    ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                      child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop(
+                                          controller.text.trim(),
+                                        );
+                                      },
+                                      child: const Text('Rename'),
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+
+                          if (newName == null || newName.isEmpty || newName == file.name) {
+                            return;
+                          }
+
+                          try {
+                            final storage = LocalProjectStorage();
+
+                            final renamedFile = await storage.renameFile(
+                              file,
+                              newName,
+                            );
+
+                            debugPrint('FILE RENAMED SUCCESSFULLY: $newName');
+
+
+
+
+
+                            final parentFolder = _findParentFolder(
+                              widget.project.rootFolder,
+                              file,
+                            );
+
+                            if(parentFolder == null){
+                              return;
+                            }
+
+                            setState((){
+                              final index = parentFolder.files.indexOf(file);
+
+                              if(index != -1) {
+                                parentFolder.files[index] = renamedFile;
+                              }
+
+                              if(activeFile == file) {
+                                activeFile = renamedFile;
+                              }
+                            });
+
+
+                          } catch (e) {
+                            if (!context.mounted) return;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                              ),
+                            );
+                          }
                         }
                       },
 
