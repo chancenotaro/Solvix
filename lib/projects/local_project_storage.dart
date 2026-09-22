@@ -149,6 +149,17 @@ class LocalProjectStorage implements ProjectStorage {
     );
   }
 
+
+  Future<void> deleteFile(ProjectFile file) async {
+    final diskFile = File(file.path);
+
+    if(!await diskFile.exists()){
+      throw Exception('The file no longer exists.');
+    }
+
+    await diskFile.delete();
+  }
+
   @override
   Future<SolvixProject> loadProject(String path) async {
     final directory = Directory(path);

@@ -539,6 +539,16 @@ class _CodePageState extends State<CodePage> {
                                 ],
                               ),
                             ),
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete),
+                                  SizedBox(width: 12),
+                                  Text('Delete'),
+                                ],
+                              )
+                            )
                           ],
                         );
 
@@ -592,11 +602,6 @@ class _CodePageState extends State<CodePage> {
                             );
 
                             debugPrint('FILE RENAMED SUCCESSFULLY: $newName');
-
-
-
-
-
                             final parentFolder = _findParentFolder(
                               widget.project.rootFolder,
                               file,
@@ -619,6 +624,71 @@ class _CodePageState extends State<CodePage> {
                             });
 
 
+                          } catch (e) {
+                            if (!context.mounted) return;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                              ),
+                            );
+                          }
+                        }
+                        else if (action == 'delete') {
+                          final shouldDelete = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) {
+                              return AlertDialog(
+                                title: const Text('Delete File'),
+                                content: Text(
+                                  'Are you sure you want to delete "${file.name}"?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(dialogContext).pop(false);
+                                    },
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () {
+                                      Navigator.of(dialogContext).pop(true);
+                                    },
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (shouldDelete != true) {
+                            return;
+                          }
+
+                          try {
+                            final storage = LocalProjectStorage();
+
+                            await storage.deleteFile(file);
+
+                            final parentFolder = _findParentFolder(
+                              widget.project.rootFolder,
+                              file,
+                            );
+
+                            if (parentFolder == null) {
+                              return;
+                            }
+
+                            setState(() {
+                              parentFolder.files.remove(file);
+
+                              if (activeFile == file) {
+                                activeFile = null;
+                                codeController.text = '';
+                              }
+                            });
+
+                            debugPrint('FILE DELETED SUCCESSFULLY: ${file.name}');
                           } catch (e) {
                             if (!context.mounted) return;
 
