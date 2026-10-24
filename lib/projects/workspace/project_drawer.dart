@@ -6,8 +6,8 @@ class ProjectDrawer extends StatelessWidget {
   final ProjectFolder rootFolder;
   final void Function(ProjectFile file)? onFileSelected;
   final void Function(ProjectFile file, Offset position)? onFileLongPressed;
-  final void Function(ProjectFolder foler)? onFolderSelected;
-  final void Function(ProjectFile file)? onFolderLongPressed;
+  final void Function(ProjectFolder folder)? onFolderSelected;
+  final void Function(ProjectFolder folder, Offset position)? onFolderLongPressed;
 
   final VoidCallback onToggle;
   final VoidCallback onCreate;
@@ -78,18 +78,26 @@ class ProjectDrawer extends StatelessWidget {
 
   List<Widget> _buildFolders(List<ProjectFolder> folders) {
     return folders.map((folder) {
-      return ExpansionTile(
-        leading: const Icon(Icons.folder),
-        title: Text(folder.name),
-        onExpansionChanged: (expanded) {
-          if (expanded) {
-            onFolderSelected?.call(folder);
-          }
+      return GestureDetector(
+        onLongPressStart: (details) {
+          onFolderLongPressed?.call(
+            folder,
+            details.globalPosition,
+          );
         },
-        children: [
-          ..._buildFolders(folder.folders),
-          ..._buildFiles(folder.files),
-        ],
+        child: ExpansionTile(
+          leading: const Icon(Icons.folder),
+          title: Text(folder.name),
+          onExpansionChanged: (expanded) {
+            if (expanded) {
+              onFolderSelected?.call(folder);
+            }
+          },
+          children: [
+            ..._buildFolders(folder.folders),
+            ..._buildFiles(folder.files),
+          ],
+        ),
       );
     }).toList();
   }

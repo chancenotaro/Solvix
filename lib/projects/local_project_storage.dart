@@ -69,10 +69,7 @@ class LocalProjectStorage implements ProjectStorage {
     return loadProject(projectDirectory.path);
   }
 
-  Future<ProjectFolder> createFolder(
-      String parentFolderPath,
-      String folderName,
-      ) async {
+  Future<ProjectFolder> createFolder(String parentFolderPath, String folderName) async {
     final folderPath = '$parentFolderPath/$folderName';
 
     final directory = Directory(folderPath);
@@ -92,10 +89,7 @@ class LocalProjectStorage implements ProjectStorage {
   }
 
 
-  Future<ProjectFile> createFile(
-      String folderPath,
-      String fileName,
-      ) async {
+  Future<ProjectFile> createFile(String folderPath, String fileName) async {
     final filePath = '$folderPath/$fileName';
 
     final file = File(filePath);
@@ -113,10 +107,7 @@ class LocalProjectStorage implements ProjectStorage {
     );
 }
 
-  Future<ProjectFile> renameFile(
-      ProjectFile file,
-      String newName,
-      ) async {
+  Future<ProjectFile> renameFile(ProjectFile file, String newName) async {
     final trimmedName = newName.trim();
 
     if (trimmedName.isEmpty) {
@@ -149,6 +140,35 @@ class LocalProjectStorage implements ProjectStorage {
     );
   }
 
+  Future<ProjectFolder> renameFolder(ProjectFolder folder, String newName) async {
+    final trimmedName = newName.trim();
+
+    if (trimmedName.isEmpty) {
+      throw Exception('Folder name cannot be empty');
+    }
+    final oldDirectory = Directory(folder.path);
+
+    if(!await oldDirectory.exists()) {
+      throw Exception('The folder no longer exists');
+    }
+    final newPath = '${oldDirectory.parent.path}/$trimmedName';
+
+    final newDirectory = Directory(newPath);
+
+    if(await newDirectory.exists()) {
+      throw Exception(
+        'A folder named "$trimmedName" already exists.',
+      );
+    }
+    final renamedDirectory = await oldDirectory.rename(newPath);
+
+    return ProjectFolder(
+        name: trimmedName,
+      path: renamedDirectory.path,
+      files: folder.files,
+      folders: folder.folders,
+    );
+  }
 
   Future<void> deleteFile(ProjectFile file) async {
     final diskFile = File(file.path);
@@ -158,6 +178,17 @@ class LocalProjectStorage implements ProjectStorage {
     }
 
     await diskFile.delete();
+  }
+
+  Future<void> deleteFolder(ProjectFolder folder) async {
+    final directory = Directory(folder.path);
+
+    if(!await directory.exists()) {
+      throw Exception('The folder no longer exists.');
+    }
+
+    await directory.delete(recursive: true);
+
   }
 
   @override

@@ -47,7 +47,27 @@ class _CodePageState extends State<CodePage> {
     return null;
   }
 
+  ProjectFolder? _findParentFolderForFolder(
+      ProjectFolder currentFolder,
+      ProjectFolder targetFolder,
+      ) {
+    if (currentFolder.folders.contains(targetFolder)) {
+      return currentFolder;
+    }
 
+    for (final childFolder in currentFolder.folders) {
+      final result = _findParentFolderForFolder(
+        childFolder,
+        targetFolder,
+      );
+
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
 
 
   List<ProjectFolder> _getAllFolders(ProjectFolder folder) {
@@ -425,25 +445,19 @@ class _CodePageState extends State<CodePage> {
 
                    child: CodeEditor(
                      controller: codeController,
-
-
-                      wordWrap: false,
-
-                      indicatorBuilder: (
-                          context,
-                      editingController,
-                      chunkController,
-                      notifier,
-                          ) {
-                        return DefaultCodeLineNumber(
-                          notifier: notifier,
-                          controller: editingController,
-                        );
-                        },
+                       wordWrap: false,
+                       indicatorBuilder: (
+                           context,
+                           editingController,
+                           chunkController,
+                           notifier,
+                           ) {
+                       return DefaultCodeLineNumber(
+                         notifier: notifier,
+                         controller: editingController,
+                       );
+                       },
                        padding: const EdgeInsets.all(12),
-
-
-
 
                        onChanged: (value) {
 
@@ -517,6 +531,172 @@ class _CodePageState extends State<CodePage> {
                       setState(() {
                         isDrawerOpen = false;
                       });
+                    },
+
+                    onFolderLongPressed: (folder, position) async {
+                      final action = await showMenu<String>(
+                        context: context,
+                        position: RelativeRect.fromLTRB(
+                          position.dx,
+                          position.dy,
+                          MediaQuery.of(context).size.width - position.dx,
+                          MediaQuery.of(context).size.height - position.dy,
+                        ),
+                        items: const [
+                          PopupMenuItem<String>(
+                            value: 'rename',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit),
+                                SizedBox(width: 12),
+                                Text('Rename'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_forever, color: Colors.red),
+                                SizedBox(width: 12),
+                                Text('Delete'),
+                              ],
+                            )
+                          )
+                        ],
+                      );
+
+                      if (action == 'delete') {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            title: const Text('Delete Folder?'),
+                            content: Text(
+                              'Delete "${folder.name}" and all of its contents? '
+                                  'This cannot be undone.'
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext, true),
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm != true) return;
+
+                        try {
+
+                          final storage = LocalProjectStorage();
+                          await storage.deleteFolder(folder);
+
+                          final parentFolder = _findParentFolderForFolder(widget.project.rootFolder, folder,);
+
+                          if (parentFolder == null) return;
+
+                          setState(() {
+                            parentFolder.folders.remove(folder);
+                          });
+                        } catch (e) {
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to delete folder: $e')),
+                          );
+                        }
+
+                      }
+
+                      if (action == 'rename') {
+                        final newName = await showDialog<String>(
+                          context: context,
+                          builder: (dialogContext) {
+                            final controller = TextEditingController(
+                              text: folder.name,
+                            );
+
+                            return AlertDialog(
+                              title: const Text('Rename Folder'),
+                              content: TextField(
+                                controller: controller,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Folder name',
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () {
+                                    Navigator.of(dialogContext).pop(
+                                      controller.text.trim(),
+                                    );
+                                  },
+                                  child: const Text('Rename'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (newName == null ||
+                            newName.isEmpty ||
+                            newName == folder.name) {
+                          return;
+                        }
+                        try {
+                          final storage = LocalProjectStorage();
+
+                          final renamedFolder = await storage.renameFolder(
+                            folder,
+                            newName,
+                          );
+
+                          final parentFolder = _findParentFolderForFolder(
+                            widget.project.rootFolder,
+                            folder,
+                          );
+
+                          if (parentFolder == null) {
+                            return;
+                          }
+
+                          setState(() {
+                            final index = parentFolder.folders.indexOf(folder);
+
+                            if (index != -1) {
+                              parentFolder.folders[index] = renamedFolder;
+                            }
+
+                            if (selectedFolder == folder) {
+                              selectedFolder = renamedFolder;
+                            }
+                          });
+
+                          debugPrint('FOLDER RENAMED SUCCESSFULLY: $newName');
+                        } catch (e) {
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                            ),
+                          );
+                        }
+                      }
+
                     },
 
                       onFileLongPressed: (file, position) async {
