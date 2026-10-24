@@ -68,6 +68,37 @@ class _CodePageState extends State<CodePage> {
 
     return null;
   }
+  bool _folderContainsFile(
+      ProjectFolder folder,
+      ProjectFile file,
+      ) {
+    if (folder.files.contains(file)) {
+      return true;
+    }
+    for (final childFolder in folder.folders) {
+      if (_folderContainsFile(childFolder, file)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _folderContainsFolder(
+      ProjectFolder folder,
+      ProjectFolder targetFolder,
+      ) {
+
+    if (folder == targetFolder) {
+      return true;
+    }
+
+    for (final childFolder in folder.folders) {
+      if(_folderContainsFolder(childFolder, targetFolder)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
 
   List<ProjectFolder> _getAllFolders(ProjectFolder folder) {
@@ -594,15 +625,36 @@ class _CodePageState extends State<CodePage> {
 
                         try {
 
-                          final storage = LocalProjectStorage();
-                          await storage.deleteFolder(folder);
+
 
                           final parentFolder = _findParentFolderForFolder(widget.project.rootFolder, folder,);
 
                           if (parentFolder == null) return;
 
+                          final shouldClearActiveFile =
+                          activeFile != null && _folderContainsFile(folder, activeFile!);
+
+                          final shouldResetSelectedFolder =
+                          selectedFolder != null &&
+                              _folderContainsFolder(folder, selectedFolder!);
+
+                          final storage = LocalProjectStorage();
+                          await storage.deleteFolder(folder);
+
+                          if(!mounted) return;
+
                           setState(() {
                             parentFolder.folders.remove(folder);
+
+                            if(shouldClearActiveFile) {
+                              activeFile = null;
+                              codeController.text = '';
+                            }
+
+                            if(shouldResetSelectedFolder) {
+                              selectedFolder = widget.project.rootFolder;
+                            }
+
                           });
                         } catch (e) {
                           if (!mounted) return;
@@ -611,7 +663,6 @@ class _CodePageState extends State<CodePage> {
                             SnackBar(content: Text('Failed to delete folder: $e')),
                           );
                         }
-
                       }
 
                       if (action == 'rename') {
