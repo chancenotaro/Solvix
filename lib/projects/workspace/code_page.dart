@@ -5,6 +5,10 @@ import '../project_file.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:solvix/projects/local_project_storage.dart';
 import 'package:solvix/projects/project_folder.dart';
+import 'package:re_highlight/languages/dart.dart';
+import 'package:re_highlight/styles/atom-one-dark.dart';
+import 'package:re_highlight/languages/javascript.dart';
+import 'package:re_highlight/languages/python.dart';
 
 class CodePage extends StatefulWidget {
 
@@ -136,6 +140,7 @@ class _CodePageState extends State<CodePage> {
     
     String selectedType = 'Dart File';
 
+
     debugPrint('ABOUT TO SHOW CREATE DIALOG');
     showDialog(
       context: context,
@@ -169,6 +174,14 @@ class _CodePageState extends State<CodePage> {
                         DropdownMenuItem(
                           value: 'Dart File',
                           child: Text('Dart File'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'JavaScript File',
+                          child: Text('JavaScript File'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Python File',
+                          child: Text('Python'),
                         ),
                         DropdownMenuItem(
                           value: 'Folder',
@@ -238,10 +251,27 @@ class _CodePageState extends State<CodePage> {
                     try {
                       final storage = LocalProjectStorage();
 
-                      if (selectedType == 'Dart File') {
+                      if (selectedType == 'Dart File' ||
+                      selectedType == 'JavaScript File' ||
+                      selectedType == 'Python File') {
+
+                        String extension;
+
+                        if (selectedType == 'Dart File') {
+                          extension = '.dart';
+                        } else if (selectedType == 'JavaScript File') {
+                          extension = '.js';
+                        } else {
+                          extension = '.py';
+                        }
+
+                        final fileName = name.endsWith(extension)
+                        ? name
+                            : '$name$extension';
+
                         final file = await storage.createFile(
                           targetFolder.path,
-                          name.endsWith('.dart') ? name : '$name.dart',
+                          fileName,
                         );
 
                         setState(() {
@@ -251,6 +281,7 @@ class _CodePageState extends State<CodePage> {
                         if (!context.mounted) return;
 
                         Navigator.of(context).pop();
+
                       } else if (selectedType == 'Folder') {
                         final folder = await storage.createFolder(
                           targetFolder.path,
@@ -402,6 +433,21 @@ class _CodePageState extends State<CodePage> {
     );
   }
 
+  CodeHighlightThemeMode? _getLanguageMode(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+
+    switch(extension) {
+      case 'dart' :
+        return CodeHighlightThemeMode(mode: langDart);
+      case 'js':
+        return CodeHighlightThemeMode(mode: langJavascript);
+      case 'py':
+        return CodeHighlightThemeMode(mode: langPython);
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -476,7 +522,18 @@ class _CodePageState extends State<CodePage> {
 
                    child: CodeEditor(
                      controller: codeController,
+                       style: CodeEditorStyle(
+                         codeTheme: CodeHighlightTheme(
+                           languages: {
+                             'dart': CodeHighlightThemeMode(mode: langDart),
+                             'js': CodeHighlightThemeMode(mode: langJavascript),
+                             'py': CodeHighlightThemeMode(mode: langPython),
+                           },
+                           theme: atomOneDarkTheme,
+                         ),
+                       ),
                        wordWrap: false,
+
                        indicatorBuilder: (
                            context,
                            editingController,
